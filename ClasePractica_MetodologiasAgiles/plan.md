@@ -36,7 +36,7 @@ El pronóstico usa un modelo de regresión (lineal como base, gradient boosting 
 | **Fuente de temperatura**| `inia.sql` = base de datos **SQLite**, leída con `sqlite3` (librería estándar) en modo **solo lectura** (`file:inia.sql?mode=ro`) |
 | **Configuración**        | Archivo `config.yaml` (PyYAML)                                           |
 | **Gráficos (opcional)**  | matplotlib                                                               |
-| **Pruebas**              | pytest (+ pytest-cov)                                                    |
+| **Pruebas**              | pytest + **pytest-bdd** (escenarios Gherkin en español) + hypothesis + pytest-cov. Detalle en [plan_pruebas.md](plan_pruebas.md) |
 | **Ejecución**            | Línea de comandos (`python -m depuracion --config config.yaml`)           |
 | **Plataforma**           | Windows / Linux, ejecución local, sin servidor                           |
 | **Volumen objetivo**     | Decenas de estaciones × varios años, resolución horaria o de 15 min      |

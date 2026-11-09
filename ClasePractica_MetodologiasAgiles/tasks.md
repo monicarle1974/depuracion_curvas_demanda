@@ -12,6 +12,8 @@
 - `[H#]`: historia de usuario del spec a la que pertenece.
 - Rutas relativas a `depuracion_demanda/`.
 
+**Plan de pruebas**: [plan_pruebas.md](plan_pruebas.md). Los escenarios del spec se escriben como archivos `.feature` (pytest-bdd).
+
 **Enfoque**: en cada fase se escriben **primero las pruebas** (derivadas de los escenarios Dado / Cuando / Entonces del spec), se comprueba que fallan y luego se implementa.
 
 **Orden de fases** (respeta RN-00): Setup → H1 Carga → **H2 Temperatura** → H3 Detección → H4 Sustitución → H5 Salidas → H6 Comparación → Pulido.
@@ -20,8 +22,9 @@
 
 ## Fase 0 — Setup (infraestructura compartida)
 
-- [ ] T001 Crear la estructura de carpetas del proyecto (`src/depuracion/`, `tests/unit/`, `tests/integracion/`) — `depuracion_demanda/`
-- [ ] T002 Crear `pyproject.toml` con las dependencias (pandas, numpy, scikit-learn, pyyaml, matplotlib, pytest, pytest-cov) — `pyproject.toml`
+- [ ] T001 Crear la estructura de carpetas del proyecto (`src/depuracion/`, `tests/features/`, `tests/step_defs/`, `tests/unit/`, `tests/propiedades/`, `tests/integracion/`) y `pytest.ini` con marcadores — `depuracion_demanda/`
+- [ ] T002 Crear `pyproject.toml` con las dependencias (pandas, numpy, scikit-learn, pyyaml, matplotlib) y el extra `test` (pytest, pytest-bdd ≥ 8, hypothesis, pytest-cov). Incluir un escenario "humo" en español que confirme que pytest-bdd reconoce `# language: es` — `pyproject.toml`, `tests/features/humo.feature`
+- [ ] T052 [P] Crear el workflow de CI de GitHub Actions (sección 10.1 de [plan_pruebas.md](plan_pruebas.md)) — `.github/workflows/pruebas.yml`
 - [ ] T003 [P] Crear un `README.md` inicial con el objetivo y un enlace al spec — `README.md`
 - [ ] T004 Implementar la carga y validación de la configuración, con error claro si falta un campo o tiene un tipo inválido (RNF-002), y sus pruebas — `src/depuracion/config.py`, `tests/unit/test_config.py`
 - [ ] T005 [P] Crear `config.yaml` de ejemplo con los valores por defecto de la sección 9 del plan, incluidos la ruta `feriados` y el bloque `aceptacion` (`muestra_outliers_por_estacion`, `min_outliers_confirmados`) — `config.yaml`

@@ -1,0 +1,25 @@
+# Bases de datos y datos (no versionar: tamaño y confidencialidad)
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+datos/
+data/
+**/depurado/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.ipynb_checkpoints/
+
+# Editores / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

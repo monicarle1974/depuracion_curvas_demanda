@@ -449,3 +449,40 @@ El MVP se considera **aceptado** cuando se cumplen todos estos criterios:
 - Los cambios de **parámetros** (umbral, duración máxima, mapeo de estaciones) se aceptan sin renegociar, porque se resuelven en la configuración.
 - Los cambios de **alcance** (nuevas fuentes, nuevos formatos, otras variables explicativas, otro tipo de modelo) se registran como nuevas historias. Se priorizan para entregas posteriores y **no entran en el MVP**, salvo que el negocio acepte mover la fecha de la demo.
 - Cualquier cambio que afecte al spec se refleja primero en [spec_depuracion_demanda_electrica.md](spec_depuracion_demanda_electrica.md) y después en este plan.
+
+---
+
+## 13. Ajustes realizados durante la implementación
+
+Decisiones tomadas al implementar, a partir de los datos reales. Sustituyen a lo indicado antes en este plan cuando hay diferencias.
+
+### 13.1 Ejecución en Docker
+Todo se instala y se ejecuta en un contenedor (`Dockerfile` + `docker-compose.yml`). Las bases y el archivo de feriados se montan en **solo lectura** en `/datos`. Se fija `OMP_NUM_THREADS=1`: sin ese valor, scikit-learn crea demasiados hilos dentro del contenedor y Gradient Boosting tarda unas 15 veces más.
+
+### 13.2 Esquema real de `inia.sqlite` (T010)
+Sustituye al esquema provisional de 5.3:
+- `Estaciones(Id, Nombre, Coord_x = longitud, Coord_y = latitud)`: 9 estaciones.
+- `Medidores(Id, Id_estacion, Nombre, Tipo, …)`: los termómetros se identifican con `Tipo LIKE 'Term%'` y se llaman `t1`, `t2` y `t3`. Se usa `t1` y sus faltantes se completan con `t2` y `t3`.
+- `Medidas(Id_medidor, Fecha_hora, Valor)`: `Fecha_hora` es epoch UTC con resolución de **10 minutos**. Se alinea con la demanda como **media horaria** (`alineacion: auto`).
+- Los valores fuera de `[-30, 50]` °C se descartan.
+
+### 13.3 Entrada desde `BD_CurvasDemanda.sqlite`
+- Si `entrada` apunta a un archivo `.sqlite`, se leen las tablas `ESTACIONES` (70 estaciones con coordenadas) y `POTENCIA_ESTACION` (valores horarios de 2008 a 2025).
+- `Fecha_hora` es la **hora de reloj local guardada como epoch**. `Cambio_horario = 1` indica horario de verano (UTC−2); si vale 0, la hora es UTC−3. Con esos dos datos se reconstruye la hora local real.
+- La salida restituye exactamente el mismo `Fecha_hora` y el mismo `Cambio_horario` en `depurados/<EST>.csv`.
+- Nuevos parámetros: `periodo` (desde/hasta) y `estaciones` (lista vacía = todas).
+
+### 13.4 Mapeo automático a INIA (C4 resuelto)
+Con `mapeo_automatico: true`, cada estación eléctrica usa la estación INIA con termómetro **más cercana** (distancia haversine) y la segunda como respaldo. El mapeo asignado se guarda en `config_usada.yaml`. Las estaciones **sin coordenadas** se reportan y requieren mapeo manual: BOB, CSA, CUC, JIG, MVM, PIB, PLA, PPE y SUA.
+
+### 13.5 Archivo de feriados `tiposDeDia.txt` (C8)
+Se admite el formato del negocio:
+- `FERIADOS_COMUNES`: feriados fijos (mes y día) que se expanden a todos los años.
+- Días especiales por año (Carnaval, Turismo).
+
+El CSV de 5.2 sigue siendo válido. **El archivo no tiene días especiales para 2016**.
+
+### 13.6 Resultados de la primera ejecución real (2023-2024, 54 estaciones, ~3 min)
+- **Estaciones típicas** (ACO, COL, MVx, RIV, …): 0,1–2 % de outliers, en su mayoría caídas a cero por cortes y picos aislados. MAPE de validación entre 7 y 12 %.
+- **CON**: demanda 0 durante todo el periodo, por lo que el 100 % se marca y no se rellena. Hay que excluirla o configurar `permite_cero: true`.
+- **Estaciones con carga estacional u operativa** (EMA, PAL, LAI, TGO, ARA, STE): 9–27 % de outliers. Las subidas y bajadas de la temporada (p. ej. riego en EMA, de diciembre a marzo) se marcan como anómalas. Usar `ia` en lugar de `lineal`, o agregar la interacción hora × estación del año, mejora el MAPE pero **no** reduce la cantidad de marcas. **Pendiente de decisión** (T050): calibrar `k` por estación, o incorporar una variable de nivel reciente (por ejemplo, la mediana móvil de 7 días), lo que implica un cambio de alcance según 12.9.

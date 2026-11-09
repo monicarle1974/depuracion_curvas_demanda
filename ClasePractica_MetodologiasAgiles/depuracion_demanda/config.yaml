@@ -1,0 +1,48 @@
+# Configuración del proceso de depuración (RNF-002). Rutas relativas a este archivo.
+# En Docker, las bases reales se montan en solo lectura en /datos (ver docker-compose.yml).
+
+# --- Entradas y salidas --------------------------------------------------------------
+entrada: /datos/BD_CurvasDemanda.sqlite      # base SQLite o carpeta con archivos CSV/Excel
+salida: ./salida                             # cada ejecución crea salida/ejecucion_AAAAMMDD_HHMMSS
+feriados: /datos/tiposDeDia.txt              # archivo de feriados del negocio (formato tiposDeDia o CSV)
+inia:
+  ruta: /datos/inia.sqlite
+  medidores_preferidos: [t1, t2, t3]
+  rango_valido: [-30.0, 50.0]                # °C fuera de este rango se descartan
+
+# --- Alcance ---------------------------------------------------------------------------
+periodo: {desde: "2023-01-01", hasta: "2024-12-31"}
+estaciones: []                               # vacío = todas las de la base
+
+# --- Tiempo y calendario -------------------------------------------------------------
+frecuencia: 1h
+zona_horaria: America/Montevideo
+hemisferio: sur
+criterio_estacion: meteorologico
+fuente_sqlite: {desfase_utc_horas: -3, desfase_cambio_horario_horas: -2}
+duplicados: promedio
+
+# --- Temperatura ---------------------------------------------------------------------
+alineacion: auto                             # 10 min de INIA → media horaria
+max_hueco_temp: 6h
+temperatura_confort: {hdd_base: 18, cdd_base: 22}
+
+# --- Detección y sustitución ---------------------------------------------------------
+deteccion: {k: 4.0, max_iter: 3}
+metodo: lineal                               # lineal | ia | auto
+max_duracion_relleno: 7D
+min_registros_entrenamiento: 2160
+graficos: true
+seed: 42
+
+# --- Acuerdos del MVP (12.5) ---------------------------------------------------------
+aceptacion:
+  muestra_outliers_por_estacion: 20
+  min_outliers_confirmados: 0.80
+
+# --- Estaciones ----------------------------------------------------------------------
+# Con mapeo_automatico, cada estación usa la estación INIA más cercana (y la segunda
+# como respaldo). Aquí se pueden fijar valores por estación, por ejemplo:
+#   ACO: {inia: LAS_BRUJAS, capacidad_max_mw: 40, permite_cero: false}
+mapeo_automatico: true
+mapeo_estaciones: {}

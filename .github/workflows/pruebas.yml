@@ -1,0 +1,21 @@
+name: pruebas
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ClasePractica_MetodologiasAgiles/depuracion_demanda
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construir imagen
+        run: docker build -t depuracion-demanda:ci .
+
+      # Las bases reales no están en el repositorio: las pruebas @datos_reales se excluyen (pytest.ini).
+      - name: Pruebas unitarias, funcionales (BDD), propiedades e integración
+        run: docker run --rm depuracion-demanda:ci pytest --cov=depuracion --cov-report=term-missing --cov-fail-under=85

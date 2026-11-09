@@ -1,0 +1,26 @@
+x-comun: &comun
+  image: depuracion-demanda:dev
+  environment:
+    OMP_NUM_THREADS: "1"   # evita la sobresuscripción de hilos de scikit-learn dentro del contenedor
+  volumes:
+    - ./:/app
+    - ../inia.sqlite:/datos/inia.sqlite:ro
+    - ../BD_CurvasDemanda.sqlite:/datos/BD_CurvasDemanda.sqlite:ro
+    - ../tiposDeDia.txt:/datos/tiposDeDia.txt:ro
+
+services:
+  # Ejecuta la batería de pruebas (TDD). Ej.: docker compose run --rm pruebas -m h3
+  pruebas:
+    <<: *comun
+    build: .
+    entrypoint: ["pytest"]
+
+  # Ejecuta el proceso de depuración. Ej.: docker compose run --rm depurar --estacion ACO
+  depurar:
+    <<: *comun
+    entrypoint: ["python", "-m", "depuracion", "depurar", "--config", "/app/config.yaml"]
+
+  # Evalúa la revisión manual. Ej.: docker compose run --rm evaluar --archivo salida/ejecucion_x/revision_outliers.csv
+  evaluar:
+    <<: *comun
+    entrypoint: ["python", "-m", "depuracion", "evaluar-revision", "--config", "/app/config.yaml"]

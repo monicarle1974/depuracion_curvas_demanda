@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "depuracion-demanda"
+version = "0.1.0"
+description = "Depuración de outliers en archivos de demanda eléctrica por estación usando temperatura de INIA"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.1",
+    "numpy>=1.26",
+    "scikit-learn>=1.4",
+    "pyyaml>=6.0",
+    "matplotlib>=3.8",
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-bdd>=8.0",
+    "hypothesis>=6.100",
+    "pytest-cov>=5.0",
+]
+
+[project.scripts]
+depuracion = "depuracion.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
